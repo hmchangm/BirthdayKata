@@ -18,9 +18,8 @@ suspend fun main() {
 }
 
 suspend fun Env.sendGreetingsUseCase(date: LocalDate): Unit {
-    allEmployees().map { allEmployees -> birthdayMessages(allEmployees, date) }
+    allEmployees().flatMap { allEmployees -> birthdayMessages(allEmployees, date) }
         .flatMap { sendGreetings(it) }
-
 }
 
 sealed class KataException
