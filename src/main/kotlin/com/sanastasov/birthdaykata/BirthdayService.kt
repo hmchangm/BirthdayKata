@@ -27,7 +27,6 @@ class BirthdayServiceInterpreter : BirthdayService {
         else birthday.isSameDay(date)
 
     companion object {
-
         private val SENDER_EMAIL = EmailAddress("birthday@corp.com")
             .fold({ throw IllegalArgumentException("Invalid email $it") }, ::identity)
     }

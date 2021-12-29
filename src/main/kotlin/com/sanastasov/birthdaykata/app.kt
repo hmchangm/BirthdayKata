@@ -1,5 +1,7 @@
 package com.sanastasov.birthdaykata
 
+import arrow.core.Nel
+import arrow.core.flatMap
 import java.time.LocalDate
 
 interface Env : EmployeeRepository,
@@ -16,8 +18,17 @@ suspend fun main() {
 }
 
 suspend fun Env.sendGreetingsUseCase(date: LocalDate): Unit {
-    val allEmployees = allEmployees()
-    val greetings = birthdayMessages(allEmployees, date)
-    sendGreetings(greetings)
-    Unit
+    allEmployees().map { allEmployees -> birthdayMessages(allEmployees, date) }
+        .flatMap { sendGreetings(it) }
+
 }
+
+sealed class KataException
+
+data class EmployeeRepositoryException(
+    val errors: Nel<String>
+) : KataException()
+
+data class EmailSendError(
+    val it: Throwable
+) : KataException()

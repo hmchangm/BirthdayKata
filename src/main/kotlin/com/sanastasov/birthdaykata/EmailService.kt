@@ -1,5 +1,7 @@
 package com.sanastasov.birthdaykata
 
+import arrow.core.Either
+import arrow.core.traverseEither
 import java.util.*
 import javax.mail.Message
 import javax.mail.Session
@@ -10,19 +12,19 @@ import javax.mail.internet.MimeMessage
 
 interface EmailService {
 
-    suspend fun sendGreeting(emailMessage: EmailMessage): Unit
+    suspend fun sendGreeting(emailMessage: EmailMessage): Either<EmailSendError, Unit>
 
-    suspend fun sendGreetings(greetings: List<EmailMessage>): List<Unit> =
-        greetings.map { sendGreeting(it) }
+    suspend fun sendGreetings(greetings: List<EmailMessage>): Either<EmailSendError, List<Unit>> =
+        greetings.traverseEither { sendGreeting(it) }
 }
 
 class SmtpEmailService(private val host: String, private val port: Int) : EmailService {
 
-    override suspend fun sendGreeting(emailMessage: EmailMessage): Unit {
-        val session =  buildSession()
+    override suspend fun sendGreeting(emailMessage: EmailMessage) = Either.catch {
+        val session = buildSession()
         val message = createMessage(session, emailMessage)
         Transport.send(message)
-    }
+    }.mapLeft { EmailSendError(it) }
 
     private suspend fun buildSession(): Session {
         val props = Properties().apply {

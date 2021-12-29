@@ -17,8 +17,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     val arrow_version = "1.0.1"
-    implementation("io.arrow-kt:arrow-core:$arrow_version")
-    implementation("io.arrow-kt:arrow-fx-coroutines:$arrow_version")
+    implementation("io.arrow-kt:arrow-fx-coroutines-jvm:$arrow_version")
 
     implementation("com.sun.mail:javax.mail:1.6.2")
     implementation("io.github.microutils:kotlin-logging:2.1.0")
@@ -32,9 +31,9 @@ dependencies {
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "11"
     }
 }

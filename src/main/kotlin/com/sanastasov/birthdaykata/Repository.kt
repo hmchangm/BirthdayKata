@@ -1,37 +1,34 @@
 package com.sanastasov.birthdaykata
 
+import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.identity
 import arrow.core.sequenceValidated
+import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.bracket
+import arrow.fx.coroutines.fromAutoCloseable
 import java.io.BufferedReader
 import java.io.File
 
 interface EmployeeRepository {
 
-    suspend fun allEmployees(): List<Employee>
+    suspend fun allEmployees(): Either<KataException, List<Employee>>
 }
 
 class FileEmployeeRepository(fileName: String) : EmployeeRepository {
 
-    private val file = File(fileName)
+    private val file = Resource.fromAutoCloseable { File(fileName).inputStream() }
 
-    override suspend fun allEmployees(): List<Employee> =
-        bracket({ file.bufferedReader() }, readFile(), { it.close() })
+    override suspend fun allEmployees(): Either<KataException, List<Employee>> =
+        file.use { readFile()(it.bufferedReader()) }
 
-    private fun readFile(): suspend (BufferedReader) -> List<Employee> = { br: BufferedReader ->
-        val employees =
+    private fun readFile(): (BufferedReader) -> Either<KataException, List<Employee>> = { br: BufferedReader ->
             br.readLines()
                 .drop(1)
                 .map(employeeParser)
-                .sequenceValidated()
-
-        employees.fold({ throw EmployeeRepositoryException(it) }, ::identity)
+                .sequenceValidated().toEither().mapLeft {EmployeeRepositoryException(it) }
     }
 
-    data class EmployeeRepositoryException(
-        val errors: Nel<String>
-    ) : RuntimeException("Error reading from repo: $errors")
 
     companion object {
 
